@@ -27,7 +27,7 @@
 namespace mongo {
 
     string TagRange::toString() const {
-        return str::stream() << min << " -->> " << max << "  on  " << tag;
+        return str::stream() << min.toString(false, true) << " -->> " << max.toString(false, true) << "  on  " << tag;
     }
 
     DistributionStatus::DistributionStatus( const ShardInfoMap& shardInfo,
@@ -456,8 +456,8 @@ namespace mongo {
 
     string ChunkInfo::toString() const {
         StringBuilder buf;
-        buf << " min: " << min;
-        buf << " max: " << max;
+        buf << " min: " << min.toString(false, true);
+        buf << " max: " << max.toString(false, true);
         return buf.str();
     }
 

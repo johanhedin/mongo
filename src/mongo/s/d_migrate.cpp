@@ -201,7 +201,7 @@ namespace mongo {
         }
 
         string toString() const {
-            return str::stream() << ns << " from " << min << " -> " << max;
+            return str::stream() << ns << " from " << min.toString(false, true) << " -> " << max.toString(false, true);
         }
 
         void doRemove() {
@@ -529,7 +529,7 @@ namespace mongo {
             if ( isLargeChunk ) {
                 warning() << "can't move chunk of size (approximately) " << recCount * avgRecSize
                           << " because maximum size allowed to move is " << maxChunkSize
-                          << " ns: " << _ns << " " << _min << " -> " << _max
+                          << " ns: " << _ns << " " << _min.toString(false, true) << " -> " << _max.toString(false, true)
                           << migrateLog;
                 result.appendBool( "chunkTooBig" , true );
                 result.appendNumber( "estimatedChunkSize" , (long long)(recCount * avgRecSize) );
@@ -1009,12 +1009,12 @@ namespace mongo {
                 dlk = dist_lock_try( &lockSetup , (string)"migrate-" + min.toString(), 30.0 /*timeout*/ );
             }
             catch( LockException& e ){
-                errmsg = str::stream() << "error locking distributed lock for migration " << "migrate-" << min.toString() << causedBy( e );
+                errmsg = str::stream() << "error locking distributed lock for migration " << "migrate-" << min.toString(false, true) << causedBy( e );
                 return false;
             }
 
             if ( ! dlk.got() ) {
-                errmsg = str::stream() << "the collection metadata could not be locked with lock " << "migrate-" << min.toString();
+                errmsg = str::stream() << "the collection metadata could not be locked with lock " << "migrate-" << min.toString(false, true);
                 result.append( "who" , dlk.other() );
                 return false;
             }
@@ -1060,8 +1060,8 @@ namespace mongo {
                     result.append( "requestedMin" , min );
                     result.append( "requestedMax" , max );
 
-                    warning() << "aborted moveChunk because" <<  errmsg << ": " << min << "->" << max
-                                      << " is now " << currMin << "->" << currMax << migrateLog;
+                    warning() << "aborted moveChunk because" <<  errmsg << ": " << min.toString(false, true) << "->" << max.toString(false, true)
+                                      << " is now " << currMin.toString(false, true) << "->" << currMax.toString(false, true) << migrateLog;
                     return false;
                 }
 
@@ -1184,10 +1184,10 @@ namespace mongo {
 
                 conn.done();
 
-                LOG(0) << "moveChunk data transfer progress: " << res << " my mem used: " << migrateFromStatus.mbUsed() << migrateLog;
+                LOG(0) << "moveChunk data transfer progress: " << res.toString(false, true) << " my mem used: " << migrateFromStatus.mbUsed() << migrateLog;
 
                 if ( ! ok || res["state"].String() == "fail" ) {
-                    warning() << "moveChunk error transferring data caused migration abort: " << res << migrateLog;
+                    warning() << "moveChunk error transferring data caused migration abort: " << res.toString(false, true) << migrateLog;
                     errmsg = "data transfer error";
                     result.append( "cause" , res );
                     return false;
@@ -1205,7 +1205,7 @@ namespace mongo {
                     conn->runCommand( "admin" , BSON( "_recvChunkAbort" << 1 ) , res );
                     res = res.getOwned();
                     conn.done();
-                    error() << "aborting migrate because too much memory used res: " << res << migrateLog;
+                    error() << "aborting migrate because too much memory used res: " << res.toString(false, true) << migrateLog;
                     errmsg = "aborting migrate because too much memory used";
                     result.appendBool( "split" , true );
                     return false;
@@ -1595,7 +1595,7 @@ namespace mongo {
             
             slaveCount = ( getSlaveCount() / 2 ) + 1;
 
-            log() << "starting receiving-end of migration of chunk " << min << " -> " << max <<
+            log() << "starting receiving-end of migration of chunk " << min.toString(false, true) << " -> " << max.toString(false, true) <<
                     " for collection " << ns << " from " << from <<
                     " (" << getSlaveCount() << " slaves detected)" << endl;
 
@@ -1922,20 +1922,20 @@ namespace mongo {
             if ( ! opReplicatedEnough( lastOpApplied ) ) {
                 OpTime op( lastOpApplied );
                 OCCASIONALLY warning() << "migrate commit waiting for " << slaveCount 
-                                       << " slaves for '" << ns << "' " << min << " -> " << max 
+                                       << " slaves for '" << ns << "' " << min.toString(false, true) << " -> " << max.toString(false, true) 
                                        << " waiting for: " << op
                                        << migrateLog;
                 return false;
             }
 
-            log() << "migrate commit succeeded flushing to secondaries for '" << ns << "' " << min << " -> " << max << migrateLog;
+            log() << "migrate commit succeeded flushing to secondaries for '" << ns << "' " << min.toString(false, true) << " -> " << max.toString(false, true) << migrateLog;
 
             {
                 Lock::GlobalRead lk;
 
                 // if durability is on, force a write to journal
                 if ( getDur().commitNow() ) {
-                    log() << "migrate commit flushed to journal for '" << ns << "' " << min << " -> " << max << migrateLog;
+                    log() << "migrate commit flushed to journal for '" << ns << "' " << min.toString(false, true) << " -> " << max.toString(false, true) << migrateLog;
                 }
             }
 

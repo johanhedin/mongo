@@ -325,7 +325,7 @@ namespace mongo {
                     return true;
                 }
                 
-                log() << "request split points lookup for chunk " << ns << " " << min << " -->> " << max << endl;
+                log() << "request split points lookup for chunk " << ns << " " << min.toString(false, true) << " -->> " << max.toString(false, true) << endl;
                 
                 // We'll use the average object size and number of object to find approximately how many keys
                 // each chunk should have. We'll split at half the maxChunkSize or maxChunkObjects, if
@@ -376,7 +376,7 @@ namespace mongo {
                                 currCount = 0;
                                 numChunks++;
                                 
-                                LOG(4) << "picked a split key: " << currKey << endl;
+                                LOG(4) << "picked a split key: " << currKey.toString(false, true) << endl;
                             }
                             
                         }
@@ -386,7 +386,7 @@ namespace mongo {
                         // Stop if we have enough split points.
                         if ( maxSplitPoints && ( numChunks >= maxSplitPoints ) ) {
                             log() << "max number of requested split points reached (" << numChunks
-                                  << ") before the end of chunk " << ns << " " << min << " -->> " << max
+                                  << ") before the end of chunk " << ns << " " << min.toString(false, true) << " -->> " << max.toString(false, true)
                                   << endl;
                             break;
                         }
@@ -474,7 +474,7 @@ namespace mongo {
 
     string ChunkInfo::toString() const {
         ostringstream os;
-        os << "lastmod: " << lastmod.toString() << " min: " << min << " max: " << max << endl;
+        os << "lastmod: " << lastmod.toString() << " min: " << min.toString(false, true) << " max: " << max.toString(false, true) << endl;
         return os.str();
     }
     // ** end temporary **
@@ -566,7 +566,7 @@ namespace mongo {
 
             Shard myShard( from );
 
-            log() << "received splitChunk request: " << cmdObj << endl;
+            log() << "received splitChunk request: " << cmdObj.toString(false, true) << endl;
 
             //
             // 2. lock the collection's metadata and get highest version for the current shard
@@ -622,8 +622,8 @@ namespace mongo {
                     result.append( "requestedMin" , min );
                     result.append( "requestedMax" , max );
 
-                    LOG( LL_WARNING ) << "aborted split because " << errmsg << ": " << min << "->" << max
-                                      << " is now " << currMin << "->" << currMax << endl;
+                    LOG( LL_WARNING ) << "aborted split because " << errmsg << ": " << min.toString(false, true) << "->" << max.toString(false, true)
+                                      << " is now " << currMin.toString(false, true) << "->" << currMax.toString(false, true) << endl;
                     return false;
                 }
 
@@ -736,7 +736,7 @@ namespace mongo {
 
             BSONObj cmd = cmdBuilder.obj();
 
-            LOG(1) << "splitChunk update: " << cmd << endl;
+            LOG(1) << "splitChunk update: " << cmd.toString(false, true) << endl;
 
             bool ok;
             BSONObj cmdResult;
@@ -748,7 +748,7 @@ namespace mongo {
 
             if ( ! ok ) {
                 stringstream ss;
-                ss << "saving chunks failed.  cmd: " << cmd << " result: " << cmdResult;
+                ss << "saving chunks failed.  cmd: " << cmd.toString(false, true) << " result: " << cmdResult.toString(false, true);
                 error() << ss.str() << endl;
                 msgasserted( 13593 , ss.str() );
             }

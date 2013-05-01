@@ -284,7 +284,7 @@ namespace mongo {
         BSONObj cmdObj = cmd.obj();
 
         if ( ! conn->runCommand( "admin" , cmdObj , res )) {
-            warning() << "splitChunk failed - cmd: " << cmdObj << " result: " << res << endl;
+            warning() << "splitChunk failed - cmd: " << cmdObj.toString(false, true) << " result: " << res << endl;
             conn.done();
 
             // Mark the minor version for *eventual* reload
@@ -334,7 +334,7 @@ namespace mongo {
                                             res);
         fromconn.done();
 
-        LOG( worked ? 1 : 0 ) << "moveChunk result: " << res << endl;
+        LOG( worked ? 1 : 0 ) << "moveChunk result: " << res.toString(false, true) << endl;
 
         // if succeeded, needs to reload to pick up the new location
         // if failed, mongos may be stale
@@ -517,8 +517,8 @@ namespace mongo {
         ss << ChunkType::ns() << ":" << _manager->getns() <<
               ChunkType::shard()   << ": " << _shard.toString() <<
               ChunkType::DEPRECATED_lastmod() << ": " << _lastmod.toString() <<
-              ChunkType::min()     << ": " << _min <<
-              ChunkType::max()     << ": " << _max;
+              ChunkType::min()     << ": " << _min.toString(false, true) <<
+              ChunkType::max()     << ": " << _max.toString(false, true);
         return ss.str();
     }
 
